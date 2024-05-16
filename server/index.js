@@ -1,5 +1,8 @@
 import app from "./app.js"
 import connectDB from "./db/index.js"
+import User from "./models/User.js"
+import Post from "./models/Post.js"
+import {users, posts} from "./data/index.js"
 
 process.loadEnvFile()
 
@@ -14,6 +17,10 @@ connectDB()
         app.listen(PORT, () => {
             console.log(`Server started at http://localhost:${PORT}`)
         })
+
+        // Add Data One Time
+        // User.insertMany(users)
+        // Post.insertMany(posts)
     })
     .catch((err) => {
         console.log(`Failed to connect to MongoDB: ${err.message}`)
