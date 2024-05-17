@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit"
+import { createSlice } from "@reduxjs/toolkit";
 
 const authSlice = createSlice({
     name: "auth",
@@ -12,23 +12,13 @@ const authSlice = createSlice({
         setMode: (state) => {
             state.mode = state.mode === "light" ? "dark" : "light"
         },
-        setLogin: (state, action) => {
-
-        },
-        setLogout: (state) => {
-
-        },
-        setFriends: (state, action) => {
-
-        },
-        setPosts: (state, action) => {
-
-        },
-        setPost: (state, action) => {
-
-        }
+        setLogin: (state, action) => { },
+        setLogout: (state) => { },
+        setFriends: (state, action) => { },
+        setPosts: (state, action) => { },
+        setPost: (state, action) => { }
     }
 })
 
-export const { setMode, setLogin, setLogout, setFriends, setPosts, setPost } = authSlice.actions
+export const { setMode, setLogin, setFriends, setLogout, setPost, setPosts } = authSlice.actions
 export default authSlice.reducer
