@@ -1,11 +1,11 @@
 import { MdOutlineLocalOffer } from 'react-icons/md'
 import { FaStar } from 'react-icons/fa'
-import {NavLink} from "react-router-dom"
+import { NavLink } from "react-router-dom"
 
 const Hero = () => {
     return (
-        <section className='relative bg-hero bg-cover bg-center bg-no-repeat h-screen w-full'>
-            <div className='max_padd_container relative top-32 xs:top-52'>
+        <section className='relative bg-hero bg-cover bg-center bg-no-repeat sm:h-screen w-full h-[800px]'>
+            <div className='max_padd_container flex flex-col items-start justify-center h-full'>
                 <h1 className='h1 capitalize max-w-[37rem]'>Digital Shopping Hub Junction</h1>
                 <p className='text-gray-50 regular-16 mt-6 max-w-[33rem]'>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quam, illum sapiente sit ducimus ea, dolores soluta qui ipsam ut consectetur, cupiditate ipsa quasi error facilis animi eius mollitia velit accusamus. Illo, voluptates quo!</p>
                 <div className='flexStart !items-center gap-x-4 my-10'>

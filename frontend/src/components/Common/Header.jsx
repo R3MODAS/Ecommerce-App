@@ -3,9 +3,9 @@ import Navbar from "./Navbar"
 import { useState } from "react"
 import { MdClose, MdMenu } from "react-icons/md"
 import { FaOpencart } from "react-icons/fa"
-import logo from "../assets/logo.png"
-import logout from "../assets/logout.svg"
-import user from "../assets/user.svg"
+import logo from "../../assets/logo.png"
+import logout from "../../assets/logout.svg"
+import user from "../../assets/user.svg"
 
 const Header = () => {
   const [menuOpened, setMenuOpened] = useState(false)
