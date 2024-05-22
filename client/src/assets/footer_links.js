@@ -20,4 +20,5 @@
     ],
   },
 ];
+
 export default FOOTER_LINKS

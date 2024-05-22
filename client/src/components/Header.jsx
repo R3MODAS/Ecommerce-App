@@ -13,8 +13,8 @@ const Header = () => {
   const toggleMenu = () => setMenuOpened(!menuOpened)
 
   return (
-    <header className="fixed top-0 left-0 m-auto max_padd_container w-full bg-transparent ring-1 ring-slate-900/5 z-10">
-      <div className="px-4 flexBetween py-3 max-xs:px-2">
+    <header className="fixed top-0 left-0 w-full bg-white ring-1 ring-slate-900/5 z-10">
+      <div className="px-4 max_padd_container m-auto flexBetween py-3 max-xs:px-2">
         {/* Logo */}
         <div>
           <Link to={"/"}><img src={logo} alt="logo" /></Link>
