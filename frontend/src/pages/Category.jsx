@@ -1,8 +1,11 @@
 import { MdOutlineKeyboardArrowDown } from "react-icons/md"
-import all_products from "../assets/all_products"
 import Item from "../components/Home/Item"
+import { useContext } from "react"
+import { ShopContext } from "../context/ShopContext"
 
-const Category = ({category, banner}) => {
+const Category = ({ category, banner }) => {
+
+  const { all_products } = useContext(ShopContext)
 
   return (
     <section className="max_padd_container py-12 xl:py-28">
@@ -17,7 +20,7 @@ const Category = ({category, banner}) => {
 
         <div className="common-container">
           {all_products.map((item) => {
-            if (category === item.category){
+            if (category === item.category) {
               return <Item key={item.id} {...item} />
             }
           }

@@ -2,6 +2,9 @@ import { useContext } from "react"
 import { ShopContext } from "../context/ShopContext"
 import { useParams } from "react-router-dom"
 import ProductHeader from "../components/Product/ProductHeader"
+import ProductDisplay from "../components/Product/ProductDisplay"
+import ProductDescription from "../components/Product/ProductDescription"
+import RelatedProducts from "../components/Product/RelatedProducts"
 
 const Product = () => {
 
@@ -14,9 +17,12 @@ const Product = () => {
   }
 
   return (
-    <section>
+    <section className="max_padd_container py-28">
       <div>
         <ProductHeader product={product} />
+        <ProductDisplay product={product} />
+        <ProductDescription />
+        <RelatedProducts />
       </div>
     </section>
   )
