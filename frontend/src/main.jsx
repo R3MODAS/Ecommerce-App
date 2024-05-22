@@ -5,6 +5,11 @@ import './index.css'
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import { Cart, Category, Home, Login, Product } from "./pages"
 
+import bannermens from "./assets/bannermens.png"
+import bannerwomens from "./assets/bannerwomens.png"
+import bannerkids from "./assets/bannerkids.png"
+import ShopContextProvider from './context/ShopContext.jsx'
+
 // App Router for all the routes defined for our app
 const AppRouter = createBrowserRouter([
   {
@@ -16,20 +21,20 @@ const AppRouter = createBrowserRouter([
         element: <Home />
       },
       {
-        path: "/product",
-        element: <Product />
-      },
-      {
-        path: "/:productId",
-        element: <Product />
-      },
-      {
         path: "/mens",
-        element: <Category />
+        element: <Category category="mens" banner={bannermens} />
       },
       {
         path: "/womens",
-        element: <Category />
+        element: <Category category="womens" banner={bannerwomens} />
+      },
+      {
+        path: "/kids",
+        element: <Category category="kids" banner={bannerkids} />
+      },
+      {
+        path: "/product/:productId",
+        element: <Product />
       },
       {
         path: "/checkout",
@@ -45,6 +50,8 @@ const AppRouter = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <RouterProvider router={AppRouter} />
+    <ShopContextProvider>
+      <RouterProvider router={AppRouter} />
+    </ShopContextProvider>
   </React.StrictMode>,
 )

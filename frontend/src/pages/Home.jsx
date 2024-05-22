@@ -6,13 +6,13 @@ import Newsletter from "../components/Home/Newsletter"
 
 const Home = () => {
   return (
-    <main className="bg-primary text-tertiary">
+    <>
       <Hero />
       <Popular />
       <Offer />
       <NewCollections />
       <Newsletter />
-    </main>
+    </>
   )
 }
 
