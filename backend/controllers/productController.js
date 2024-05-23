@@ -1,6 +1,7 @@
 const Product = require("../models/productModel")
 const { ErrorHandler } = require("../utils/errorHandler")
 const { AsyncHandler } = require("../utils/asyncHandler")
+const { ApiFeatures } = require("../utils/apiFeatures")
 
 // Create product (Admin)
 exports.createProduct = AsyncHandler(async (req, res) => {
@@ -15,12 +16,34 @@ exports.createProduct = AsyncHandler(async (req, res) => {
 // Get all products
 exports.getAllProducts = AsyncHandler(async (req, res) => {
 
-    const products = await Product.find()
+    //! Class based Approach
+    /*
+        const apiFeature = new ApiFeatures(Product.find(), req.query).search() 
+        const products = await apiFeature.query
+        return res.status(200).json({
+            message: "Got all the products successfully",
+            products
+        })
+    */
 
+    //! Normal Approach
+    // get the query (keyword) from req.query
+    const keyword = req.query.keyword ? {
+        name: {
+            $regex: req.query.keyword,
+            $options: "i"
+        }
+    } : {}
+
+    // find the products based on the query (passed by the user) 
+    const products = await Product.find({ ...keyword })
+
+    // return the response
     return res.status(200).json({
         message: "Got all the products successfully",
         products
     })
+
 
 })
 
