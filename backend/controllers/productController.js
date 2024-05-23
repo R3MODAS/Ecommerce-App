@@ -1,18 +1,19 @@
 const Product = require("../models/productModel")
-const ErrorHandler = require("../utils/errorHandler")
+const { ErrorHandler } = require("../utils/errorHandler")
+const { AsyncHandler } = require("../utils/asyncHandler")
 
 // Create product (Admin)
-exports.createProduct = async (req, res) => {
+exports.createProduct = AsyncHandler(async (req, res) => {
     const product = await Product.create(req.body)
     return res.status(201).json({
         success: true,
         message: "Created the product successfully",
         product
     })
-}
+})
 
 // Get all products
-exports.getAllProducts = async (req, res) => {
+exports.getAllProducts = AsyncHandler(async (req, res) => {
 
     const products = await Product.find()
 
@@ -21,10 +22,10 @@ exports.getAllProducts = async (req, res) => {
         products
     })
 
-}
+})
 
 // Update product (Admin)
-exports.updateProduct = async (req, res, next) => {
+exports.updateProduct = AsyncHandler(async (req, res, next) => {
     let product = await Product.findById(req.params.id)
     if (!product) {
         return next(new ErrorHandler("Product not found", 400))
@@ -43,10 +44,10 @@ exports.updateProduct = async (req, res, next) => {
         product
     })
 
-}
+})
 
 // Delete product (Admin)
-exports.deleteProduct = async (req, res, next) => {
+exports.deleteProduct = AsyncHandler(async (req, res, next) => {
     const product = await Product.findById(req.params.id)
     if (!product) {
         return next(new ErrorHandler("Product not found", 400))
@@ -56,10 +57,10 @@ exports.deleteProduct = async (req, res, next) => {
         success: true,
         message: "Product is deleted successfully"
     })
-}
+})
 
 // Get product details
-exports.getProductDetails = async (req, res, next) => {
+exports.getProductDetails = AsyncHandler(async (req, res, next) => {
     const product = await Product.findById(req.params.id)
     if (!product) {
         return next(new ErrorHandler("Product not found", 400))
@@ -69,4 +70,4 @@ exports.getProductDetails = async (req, res, next) => {
         message: "Got product details successfully",
         product
     })
-}
+})
