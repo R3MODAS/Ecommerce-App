@@ -16,34 +16,25 @@ exports.createProduct = AsyncHandler(async (req, res) => {
 // Get all products
 exports.getAllProducts = AsyncHandler(async (req, res) => {
 
-    //! Class based Approach
-    /*
-        const apiFeature = new ApiFeatures(Product.find(), req.query).search() 
-        const products = await apiFeature.query
-        return res.status(200).json({
-            message: "Got all the products successfully",
-            products
-        })
-    */
+    const resultPerPage = 8
+    const productsCount = await Product.countDocuments()
 
-    //! Normal Approach
-    // get the query (keyword) from req.query
-    const keyword = req.query.keyword ? {
-        name: {
-            $regex: req.query.keyword,
-            $options: "i"
-        }
-    } : {}
+    // got the whole object of query and queryStr with the custom functions as well
+    const apiFeature = new ApiFeatures(Product.find(), req.query)
+        .search()
+        .filter()
+        .pagination(resultPerPage)
 
-    // find the products based on the query (passed by the user) 
-    const products = await Product.find({ ...keyword })
+    // finding all the products
+    const products = await apiFeature.query
 
     // return the response
     return res.status(200).json({
+        success: true,
         message: "Got all the products successfully",
-        products
+        products,
+        productsCount
     })
-
 
 })
 
