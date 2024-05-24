@@ -5,6 +5,9 @@ const { ApiFeatures } = require("../utils/apiFeatures")
 
 // Create product (Admin)
 exports.createProduct = AsyncHandler(async (req, res) => {
+    // get the user id from req.user and insert it inside req.body
+    req.body.user = req.user.id
+
     // get data from request body
     const product = await Product.create(req.body)
 

@@ -2,7 +2,7 @@ const User = require("../models/userModel")
 const { ErrorHandler } = require("../utils/errorHandler")
 const { AsyncHandler } = require("../utils/asyncHandler")
 
-// Register a user
+// Register user
 exports.registerUser = AsyncHandler(async (req, res, next) => {
     // get data from request body
     const { name, email, password } = req.body
@@ -45,7 +45,7 @@ exports.registerUser = AsyncHandler(async (req, res, next) => {
     })
 })
 
-// Login a user
+// Login user
 exports.loginUser = AsyncHandler(async (req, res, next) => {
     // get data from request body
     const { email, password } = req.body
@@ -89,4 +89,19 @@ exports.loginUser = AsyncHandler(async (req, res, next) => {
         token
     })
 
+})
+
+// Logout user
+exports.logoutUser = AsyncHandler(async (req,res,next) => {
+    // remove the cookie value
+    res.cookie("token", null, {
+        expires: new Date(Date.now()),
+        httpOnly: true
+    })
+
+    // return the response
+    return res.status(200).json({
+        success: true,
+        message: "Logged out successfully"
+    })
 })
