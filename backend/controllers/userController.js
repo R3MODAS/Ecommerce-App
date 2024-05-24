@@ -2,6 +2,8 @@ const User = require("../models/userModel")
 const { ErrorHandler } = require("../utils/errorHandler")
 const { AsyncHandler } = require("../utils/asyncHandler")
 const mailer = require("../utils/mailer")
+const crypto = require("crypto")
+const sendToken = require("../utils/sendToken")
 
 // Register user
 exports.registerUser = AsyncHandler(async (req, res, next) => {
@@ -33,23 +35,9 @@ exports.registerUser = AsyncHandler(async (req, res, next) => {
     // remove the password
     user.password = undefined
 
-    // generate a JWT token
-    const token = user.generateJWTToken()
+    // token and cookie functionality
+    sendToken(user, 200, res, "User registered successfully")
 
-    //  create an options for cookie
-    const options = {
-        expires: new Date(
-            Date.now() + process.env.COOKIE_EXPIRY * 24 * 60 * 60 * 1000
-        ),
-        httpOnly: true
-    }
-
-    // return the response
-    return res.cookie("token", token, options).status(200).json({
-        success: true,
-        message: "User registered successfully",
-        user, token
-    })
 })
 
 // Login user
@@ -73,28 +61,11 @@ exports.loginUser = AsyncHandler(async (req, res, next) => {
     if (!isPasswordMatched) {
         return next(new ErrorHandler("Incorrect email or password", 401))
     }
-
-    // generate a JWT token
-    const token = user.generateJWTToken()
-
     // remove the password
     user.password = undefined
 
-    //  create an options for cookie
-    const options = {
-        expires: new Date(
-            Date.now() + process.env.COOKIE_EXPIRY * 24 * 60 * 60 * 1000
-        ),
-        httpOnly: true
-    }
-
-    // return the response
-    return res.cookie("token", token, options).status(200).json({
-        success: true,
-        message: "User logged in successfully",
-        user,
-        token
-    })
+    // token and cookie functionality
+    sendToken(user, 200, res, "User logged in successfully")
 
 })
 
@@ -113,8 +84,8 @@ exports.logoutUser = AsyncHandler(async (req, res, next) => {
     })
 })
 
-// Reset Password
-exports.resetPassword = AsyncHandler(async (req, res, next) => {
+// Reset Password Token
+exports.resetPasswordToken = AsyncHandler(async (req, res, next) => {
     // get email from request body
     const { email } = req.body
 
@@ -136,7 +107,7 @@ exports.resetPassword = AsyncHandler(async (req, res, next) => {
     await user.save({ validateBeforeSave: false })
 
     // create an url with token and sent it to the user
-    const url = `${req.protocol}://${req.get("host")}/reset/password/${token}`
+    const url = `${req.protocol}://${req.get("host")}/reset-password/${token}`
 
     // send the mail to the user
     try {
@@ -155,5 +126,50 @@ exports.resetPassword = AsyncHandler(async (req, res, next) => {
 
         return next(new ErrorHandler(err.message, 500))
     }
+
+})
+
+// Reset Password
+exports.resetPassword = AsyncHandler(async (req, res, next) => {
+    // get data from request body
+    const { password, confirmPassword } = req.body
+
+    // validation of the data
+    if (!password || !confirmPassword) {
+        return next(new ErrorHandler("All fields are required", 400))
+    }
+
+    // check if password and confirm password matches or not
+    if (password !== confirmPassword) {
+        return next(new ErrorHandler("Password does not match", 400))
+    }
+
+    // get the token from request params and hash it
+    const token = crypto
+        .createHash("sha256")
+        .update(req.params.token)
+        .digest("hex")
+
+    // validation of token and token expiry
+    const user = await User.findOne(
+        {
+            forgotPasswordToken: token,
+            forgotPasswordTokenExpiry: { $gt: Date.now() }
+        })
+    if (!user) {
+        return next(new ErrorHandler("Invalid Token or Token has expired", 401))
+    }
+
+    // update the password and remove the token and token expiry from db
+    user.password = password
+    user.forgotPasswordToken = undefined
+    user.forgotPasswordTokenExpiry = undefined
+    await user.save()
+
+    // remove the password 
+    user.password = undefined
+
+    // token and cookie functionality
+    sendToken(user, 200, res, "Password reset done successfully")
 
 })

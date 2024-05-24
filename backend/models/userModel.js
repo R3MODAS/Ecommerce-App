@@ -71,6 +71,7 @@ userSchema.methods.generateJWTToken = function () {
     )
 }
 
+// Generate Reset Password Token
 userSchema.methods.generateResetPasswordToken = function () {
     // generate a token
     const token = crypto.randomBytes(20).toString("hex")
