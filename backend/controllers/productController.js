@@ -5,7 +5,10 @@ const { ApiFeatures } = require("../utils/apiFeatures")
 
 // Create product (Admin)
 exports.createProduct = AsyncHandler(async (req, res) => {
+    // get data from request body
     const product = await Product.create(req.body)
+
+    // return the response
     return res.status(201).json({
         success: true,
         message: "Created the product successfully",
