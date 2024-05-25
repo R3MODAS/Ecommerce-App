@@ -65,6 +65,7 @@ userSchema.methods.generateJWTToken = function () {
     const token = jwt.sign(
         {
             id: this._id,
+            name: this.name,
             email: this.email,
             role: this.role
         },
@@ -83,9 +84,9 @@ userSchema.methods.generateResetPasswordToken = function () {
 
     // hash the token and update the token
     this.forgotPasswordToken = crypto
-    .createHash("sha256")
-    .update(token)
-    .digest("hex")
+        .createHash("sha256")
+        .update(token)
+        .digest("hex")
 
     // update the token expiry
     this.forgotPasswordTokenExpiry = Date.now() + 15 * 60 * 1000
