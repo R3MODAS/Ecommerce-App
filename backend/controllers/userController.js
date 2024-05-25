@@ -84,7 +84,7 @@ exports.logoutUser = AsyncHandler(async (req, res, next) => {
     })
 })
 
-// Reset Password Token
+// Reset password token
 exports.resetPasswordToken = AsyncHandler(async (req, res, next) => {
     // get email from request body
     const { email } = req.body
@@ -129,7 +129,7 @@ exports.resetPasswordToken = AsyncHandler(async (req, res, next) => {
 
 })
 
-// Reset Password
+// Reset password
 exports.resetPassword = AsyncHandler(async (req, res, next) => {
     // get data from request body
     const { password, confirmPassword } = req.body
@@ -172,4 +172,50 @@ exports.resetPassword = AsyncHandler(async (req, res, next) => {
     // token and cookie functionality
     sendToken(user, 200, res, "Password reset done successfully")
 
+})
+
+// Get user Details
+exports.getUserDetails = AsyncHandler(async (req, res, next) => {
+    // get the user id from req.user (passed from auth middleware)
+    const userId = req.user.id
+
+    // find the user using the id
+    const user = await User.findById(userId)
+
+    // return the response
+    return res.status(200).json({
+        success: true,
+        message: 'Got the user details successfully',
+        user
+    })
+})
+
+// Update user password
+exports.updatePassword = AsyncHandler(async (req, res, next) => {
+    // get data from request body
+    const { oldPassword, newPassword, confirmNewPassword } = req.body
+
+    // get the user id from req.user (passed from auth middleware)
+    const userId = req.user.id
+
+    // find the user using the id
+    const user = await User.findById(userId).select("+password")
+
+    // check if the old password and password in db matches or not
+    const comparePassword = await user.comparePassword(oldPassword)
+    if (!comparePassword) {
+        return next(new ErrorHandler("Old password is incorrect", 400))
+    }
+
+    // check if new password and confirm new password matches or not
+    if (newPassword !== confirmNewPassword) {
+        return next(new ErrorHandler("New password does not match", 400))
+    }
+
+    // update the password with the new password
+    user.password = newPassword
+    await user.save()
+
+    // token and cookie functionality
+    sendToken(user, 200, res, 'Got the user details successfully')
 })

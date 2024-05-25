@@ -2,6 +2,7 @@ const { AsyncHandler } = require("../utils/asyncHandler");
 const { ErrorHandler } = require("../utils/errorHandler");
 const jwt = require("jsonwebtoken")
 
+// Auth
 exports.auth = AsyncHandler(async (req, res, next) => {
     // get token from cookie
     const token = req.cookies.token
@@ -21,6 +22,7 @@ exports.auth = AsyncHandler(async (req, res, next) => {
     next()
 })
 
+// Authorize roles
 exports.authorizeRoles = (...roles) => {
     return (req, res, next) => {
         if (!roles.includes(req.user.role)) {
