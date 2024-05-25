@@ -10,7 +10,7 @@ exports.registerUser = AsyncHandler(async (req, res, next) => {
     // get data from request body
     const { name, email, password } = req.body
 
-    // validation of data
+    // validation of the data
     if (!name || !email || !password) {
         return next(new ErrorHandler("All fields are required", 400))
     }
@@ -21,7 +21,7 @@ exports.registerUser = AsyncHandler(async (req, res, next) => {
         return next(new ErrorHandler("User is already registered", 400))
     }
 
-    // create a new user
+    // create an entry for user in db
     const user = await User.create({
         name,
         email,
@@ -36,8 +36,7 @@ exports.registerUser = AsyncHandler(async (req, res, next) => {
     user.password = undefined
 
     // token and cookie functionality
-    sendToken(user, 200, res, "User registered successfully")
-
+    sendToken(user, 200, res, "User is registered successfully")
 })
 
 // Login user
@@ -53,25 +52,25 @@ exports.loginUser = AsyncHandler(async (req, res, next) => {
     // check if the user exists in the db or not
     const user = await User.findOne({ email }).select("+password")
     if (!user) {
-        return next(new ErrorHandler("User is not found", 401))
+        return next(new ErrorHandler("User is not found", 400))
     }
 
-    // check if the password matches with the db password or not
-    const isPasswordMatched = await user.comparePassword(password)
-    if (!isPasswordMatched) {
-        return next(new ErrorHandler("Incorrect email or password", 401))
+    // compare the user password and db password
+    const isPasswordMatch = await user.comparePassword(password)
+    if (!isPasswordMatch) {
+        return next(new ErrorHandler("Incorrect email or password", 400))
     }
+
     // remove the password
     user.password = undefined
 
     // token and cookie functionality
     sendToken(user, 200, res, "User logged in successfully")
-
 })
 
 // Logout user
 exports.logoutUser = AsyncHandler(async (req, res, next) => {
-    // remove the cookie value
+    // set the cookie value to null 
     res.cookie("token", null, {
         expires: new Date(Date.now()),
         httpOnly: true
@@ -100,28 +99,29 @@ exports.resetPasswordToken = AsyncHandler(async (req, res, next) => {
         return next(new ErrorHandler("User is not found", 400))
     }
 
-    // get reset password token
+    // get the reset password token
     const token = user.generateResetPasswordToken()
 
-    // store the token and token expiry in db
+    // store the token and token expiry to db
     await user.save({ validateBeforeSave: false })
 
-    // create an url with token and sent it to the user
+    // create an url to send to user
     const url = `${req.protocol}://${req.get("host")}/reset-password/${token}`
 
-    // send the mail to the user
+    // send a mail to the user
     try {
         await mailer(email, `Reset Password Link | Ecommerce`, `You can reset your password by clicking <a href=${url} target="_blank">Reset your password</a>\nIf the above link does not work for some reason then copy paste this link in new tab ${url}.\n If you have not requested this, kindly ignore.`)
 
         // return the response
         return res.status(200).json({
             success: true,
-            message: `Reset password link has been sent to ${email} successfully`
+            message: `Reset password link has been sent to ${email} successfully`,
+            token
         })
     } catch (err) {
-        // if sending mail fails then we will remove the token and token expiry
-        user.forgotPasswordToken = undefined;
-        user.forgotPasswordTokenExpiry = undefined;
+        // remove the token and token expiry if the mail is not sent
+        user.forgotPasswordToken = undefined
+        user.forgotPasswordTokenExpiry = undefined
         await user.save()
 
         return next(new ErrorHandler(err.message, 500))
@@ -134,7 +134,7 @@ exports.resetPassword = AsyncHandler(async (req, res, next) => {
     // get data from request body
     const { password, confirmPassword } = req.body
 
-    // validation of the data
+    // validation of data
     if (!password || !confirmPassword) {
         return next(new ErrorHandler("All fields are required", 400))
     }
@@ -150,24 +150,19 @@ exports.resetPassword = AsyncHandler(async (req, res, next) => {
         .update(req.params.token)
         .digest("hex")
 
-    // validation of token and token expiry
-    const user = await User.findOne(
-        {
-            forgotPasswordToken: token,
-            forgotPasswordTokenExpiry: { $gt: Date.now() }
-        })
+    // validation of token
+    const user = await User.findOne({
+        forgotPasswordToken: token, forgotPasswordTokenExpiry: { $gt: Date.now() }
+    })
     if (!user) {
-        return next(new ErrorHandler("Invalid Token or Token has expired", 401))
+        return next(new ErrorHandler("Invalid token or token has expired", 401))
     }
 
-    // update the password and remove the token and token expiry from db
+    // update the password and remove the token and token expiry
     user.password = password
     user.forgotPasswordToken = undefined
     user.forgotPasswordTokenExpiry = undefined
     await user.save()
-
-    // remove the password 
-    user.password = undefined
 
     // token and cookie functionality
     sendToken(user, 200, res, "Password reset done successfully")
@@ -195,7 +190,7 @@ exports.changePassword = AsyncHandler(async (req, res, next) => {
     // get data from request body
     const { oldPassword, newPassword, confirmNewPassword } = req.body
 
-    // validation of the data
+    // validation of data
     if (!oldPassword || !newPassword || !confirmNewPassword) {
         return next(new ErrorHandler("All fields are required", 400))
     }
@@ -203,26 +198,26 @@ exports.changePassword = AsyncHandler(async (req, res, next) => {
     // get the user id from req.user (passed from auth middleware)
     const userId = req.user.id
 
-    // find the user using the id
+    // get the user using the user id
     const user = await User.findById(userId).select("+password")
 
-    // check if the old password and password in db matches or not
-    const comparePassword = await user.comparePassword(oldPassword)
-    if (!comparePassword) {
-        return next(new ErrorHandler("Old password is incorrect", 400))
-    }
-
-    // check if new password and confirm new password matches or not
+    // check if the new password and confirm new password matches or not
     if (newPassword !== confirmNewPassword) {
-        return next(new ErrorHandler("New password does not match", 400))
+        return next(new ErrorHandler("Password does not match", 400))
     }
 
-    // update the password with the new password
+    // check if old password and db password matches or not
+    const isPasswordMatch = await user.comparePassword(oldPassword)
+    if (!isPasswordMatch) {
+        return next(new ErrorHandler("Incorrect old password", 400))
+    }
+
+    // update the password
     user.password = newPassword
     await user.save()
 
     // token and cookie functionality
-    sendToken(user, 200, res, 'Got the user details successfully')
+    sendToken(user, 200, res, 'Password is updated successfully')
 })
 
 // Update user profile
