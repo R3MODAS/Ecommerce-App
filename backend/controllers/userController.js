@@ -174,7 +174,7 @@ exports.resetPassword = AsyncHandler(async (req, res, next) => {
 
 })
 
-// Get user Details
+// Get user details
 exports.getUserDetails = AsyncHandler(async (req, res, next) => {
     // get the user id from req.user (passed from auth middleware)
     const userId = req.user.id
@@ -190,10 +190,15 @@ exports.getUserDetails = AsyncHandler(async (req, res, next) => {
     })
 })
 
-// Update user password
-exports.updatePassword = AsyncHandler(async (req, res, next) => {
+// Change password
+exports.changePassword = AsyncHandler(async (req, res, next) => {
     // get data from request body
     const { oldPassword, newPassword, confirmNewPassword } = req.body
+
+    // validation of the data
+    if (!oldPassword || !newPassword || !confirmNewPassword) {
+        return next(new ErrorHandler("All fields are required", 400))
+    }
 
     // get the user id from req.user (passed from auth middleware)
     const userId = req.user.id
@@ -218,4 +223,128 @@ exports.updatePassword = AsyncHandler(async (req, res, next) => {
 
     // token and cookie functionality
     sendToken(user, 200, res, 'Got the user details successfully')
+})
+
+// Update user profile
+exports.updateUserProfile = AsyncHandler(async (req, res, next) => {
+    // get data from request body
+    const { name, email } = req.body
+
+    // validation of data
+    if (!name || !email) {
+        return next(new ErrorHandler("All fields are required", 400))
+    }
+
+    // get the user id from req.user (passed from auth middleware)
+    const userId = req.user.id
+
+    // update the data
+    await User.findByIdAndUpdate(
+        { _id: userId },
+        {
+            name,
+            email
+        },
+        {
+            new: true,
+            runValidators: true,
+            useFindAndModify: false
+        }
+    )
+
+    // return the response
+    return res.status(200).json({
+        success: true,
+        message: "Updated the user profile successfully"
+    })
+})
+
+// Get all users (Admin)
+exports.getAllUsers = AsyncHandler(async (req, res, next) => {
+    // get all the users
+    const users = await User.find()
+
+    // return the response
+    return res.status(200).json({
+        success: true,
+        message: "Got all the users successfully",
+        users
+    })
+})
+
+// Get single user details (Admin)
+exports.getSingleUserDetails = AsyncHandler(async (req, res, next) => {
+    // get user id from request params
+    const userId = req.params.id
+
+    // check if the user exists in the db or not
+    const user = await User.findById(userId)
+    if (!user) {
+        return next(new ErrorHandler("User is not found", 400))
+    }
+
+    // return the response
+    return res.status(200).json({
+        success: true,
+        message: "Got the single user details successfully",
+        user
+    })
+
+})
+
+// Update user role (Admin)
+exports.updateUserRole = AsyncHandler(async (req, res, next) => {
+    // get data from request body
+    const { name, email, role } = req.body
+
+    // get the user id from request params
+    const userId = req.params.id
+
+    // check if the user exists in the db or not
+    const user = await User.findById(userId)
+    if (!user) {
+        return next(new ErrorHandler("User is not found", 400))
+    }
+
+    // update the data
+    await User.findByIdAndUpdate(
+        { _id: userId },
+        {
+            name,
+            email,
+            role
+        },
+        {
+            new: true,
+            runValidators: true,
+            useFindAndModify: false
+        }
+    )
+
+    // return the response
+    return res.status(200).json({
+        success: true,
+        message: "Updated the role successfully"
+    })
+})
+
+// Delete user (Admin)
+exports.deleteUser = AsyncHandler(async (req, res, next) => {
+    // get the user id from request params
+    const userId = req.params.id
+
+    // check if the user exists in the db or not
+    const user = await User.findById(userId)
+    if (!user) {
+        return next(new ErrorHandler("User is not found", 400))
+    }
+
+    // delete the user
+    await user.deleteOne()
+
+    // return the response
+    return res.status(200).json({
+        success: true,
+        message: "Deleted the user successfully"
+    })
 })

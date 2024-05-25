@@ -15,8 +15,6 @@ exports.auth = AsyncHandler(async (req, res, next) => {
     // decode the payload
     const decodedPayload = jwt.verify(token, process.env.JWT_SECRET)
 
-    console.log(decodedPayload)
-
     // pass the payload inside req.user
     req.user = decodedPayload
     next()

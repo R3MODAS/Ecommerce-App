@@ -3,22 +3,6 @@ const { ErrorHandler } = require("../utils/errorHandler")
 const { AsyncHandler } = require("../utils/asyncHandler")
 const { ApiFeatures } = require("../utils/apiFeatures")
 
-// Create product (Admin)
-exports.createProduct = AsyncHandler(async (req, res) => {
-    // get the user id from req.user and insert it inside req.body
-    req.body.user = req.user.id
-
-    // get data from request body
-    const product = await Product.create(req.body)
-
-    // return the response
-    return res.status(201).json({
-        success: true,
-        message: "Created the product successfully",
-        product
-    })
-})
-
 // Get all products
 exports.getAllProducts = AsyncHandler(async (req, res) => {
 
@@ -42,6 +26,22 @@ exports.getAllProducts = AsyncHandler(async (req, res) => {
         productsCount
     })
 
+})
+
+// Create product (Admin)
+exports.createProduct = AsyncHandler(async (req, res) => {
+    // get the user id from req.user and insert it inside req.body
+    req.body.user = req.user.id
+
+    // get data from request body
+    const product = await Product.create(req.body)
+
+    // return the response
+    return res.status(201).json({
+        success: true,
+        message: "Created the product successfully",
+        product
+    })
 })
 
 // Update product (Admin)
