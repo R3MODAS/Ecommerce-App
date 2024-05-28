@@ -1,0 +1,1 @@
+const DB_NAME = ecommerce
