@@ -1,7 +1,7 @@
 const { Router } = require("express")
 const router = Router()
 
-const { registerUser, loginUser, logoutUser, resetPasswordToken, resetPassword, changePassword, getUserDetails, updateUserProfile, getAllUsers, getSingleUser } = require("../controllers/userController")
+const { registerUser, loginUser, logoutUser, resetPasswordToken, resetPassword, changePassword, getUserDetails, updateUserProfile, getAllUsers, getSingleUser, deleteUser, updateUserRole } = require("../controllers/userController")
 const { auth, authorizeRoles } = require("../middlewares/auth")
 
 // ********************************************************************************************************
@@ -29,6 +29,7 @@ router.route("/me/update").put(auth, updateUserProfile)
 router.route("/admin/users").get(auth, authorizeRoles("admin"), getAllUsers)
 router.route("/admin/user/:id")
     .get(auth, authorizeRoles("admin"), getSingleUser)
-
+    .delete(auth, authorizeRoles("admin"), deleteUser)
+    .put(auth, authorizeRoles("admin"), updateUserRole)
 
 module.exports = router

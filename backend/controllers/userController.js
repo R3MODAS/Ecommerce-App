@@ -270,7 +270,7 @@ exports.getAllUsers = AsyncHandler(async (req, res, next) => {
     })
 })
 
-// Get single User (Admin)
+// Get Single User (Admin)
 exports.getSingleUser = AsyncHandler(async (req, res, next) => {
     // get user id from request params
     const userId = req.params.id
@@ -289,7 +289,8 @@ exports.getSingleUser = AsyncHandler(async (req, res, next) => {
     })
 })
 
-exports.deleteUser = AsyncHandler(async (req,res,next) => {
+// Delete User (Admin)
+exports.deleteUser = AsyncHandler(async (req, res, next) => {
     // get user id from request params
     const userId = req.params.id
 
@@ -306,5 +307,41 @@ exports.deleteUser = AsyncHandler(async (req,res,next) => {
     return res.status(200).json({
         success: true,
         message: "User is deleted successfully"
+    })
+})
+
+// Update user role (Admin)
+exports.updateUserRole = AsyncHandler(async (req, res, next) => {
+    // get data from request boyd
+    const { name, email, role } = req.body
+
+    // get the user id from request params
+    const userId = req.params.id
+
+    // check if the user exists in the db or not
+    const user = await User.findById(userId)
+    if (!user) {
+        return next(new ErrorHandler("User is not found", 401))
+    }
+
+    // update the data
+    await User.findByIdAndUpdate(
+        userId,
+        {
+            name,
+            email,
+            role
+        },
+        {
+            new: true,
+            runValidators: true,
+            useFindAndModify: false
+        }
+    )
+
+    // return the response
+    return res.status(200).json({
+        success: true,
+        message: "Updated the role successfully"
     })
 })
