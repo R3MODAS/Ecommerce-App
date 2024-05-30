@@ -65,6 +65,36 @@ exports.deleteProduct = AsyncHandler(async (req, res, next) => {
   });
 });
 
+// Get all Products
+exports.getAllProducts = AsyncHandler(async (req, res, next) => {
+  // get the total no of products
+  const productsCount = await Product.countDocuments();
+
+  // total no of products shown in a single page
+  const resultPerPage = 8;
+
+  // Get the search and filter feature for finding products
+  const features = new ApiFeatures(Product.find(), req.query)
+    .search()
+    .filter()
+    .pagination(resultPerPage);
+
+  // find the products with the search and filter query
+  let products = await features.query;
+
+  // get the total no of filtered products
+  const filteredProductsCount = products.length;
+
+  return res.status(200).json({
+    success: true,
+    message: "Got all the products successfully",
+    products,
+    productsCount,
+    resultPerPage,
+    filteredProductsCount,
+  });
+});
+
 // Get Product Details
 exports.getProductDetails = AsyncHandler(async (req, res, next) => {
   // get product id from request params
@@ -84,31 +114,82 @@ exports.getProductDetails = AsyncHandler(async (req, res, next) => {
   });
 });
 
-// Get all Products
-exports.getAllProducts = AsyncHandler(async (req, res, next) => {
-  // count the total products
-  const productsCount = await Product.countDocuments();
+// Create or update review
+exports.createProductReview = AsyncHandler(async (req, res, next) => {
+  // get data from request body
+  const { rating, comment, productId } = req.body;
 
-  // set the result of product per page
-  const resultPerPage = 8;
+  // get the user data who reviewed the product
+  const { id, name } = req.user;
 
-  // search and filter functionality for getting the products
-  const apiFeature = new ApiFeatures(Product.find(), req.query)
-    .search()
-    .filter();
+  // validation of data
+  if (!rating || !comment || !productId) {
+    return next(new ErrorHandler("All fields are required", 400));
+  }
 
-  // find the products with the query
-  let products = await apiFeature.query;
+  // create a new review to entry it in db
+  const review = {
+    user: id,
+    name: name,
+    rating,
+    comment,
+  };
 
-  // find the filtered products count
-  let filteredProductsCount = products.length;
+  // check if the product to be reviewed exists in the db or not
+  const product = await Product.findById(productId);
+  if (!product) {
+    return next(new ErrorHandler("Product is not found", 400));
+  }
+
+  // check if the product is already reviewed by the user or not
+  const isReviewed = product.reviews.find(
+    (rev) => rev.user.toString() === id.toString()
+  );
+  // if the product is already reviewed then update the review for the current user
+  if (isReviewed) {
+    product.reviews.forEach((rev) => {
+      if (rev.user.toString() === id.toString())
+        (rev.rating = rating), (rev.comment = comment);
+    });
+  }
+  // if the product is not reviewed then push the new review and update the total no of reviews
+  else {
+    product.reviews.push(review);
+    product.numOfReviews = product.reviews.length;
+  }
+
+  // update the rating
+  let totalRatings = 0;
+  product.reviews.forEach((rev) => {
+    totalRatings += rev.rating;
+  });
+  product.ratings = totalRatings / product.reviews.length;
+
+  // save all the updates
+  await product.save({ validateBeforeSave: false });
 
   // return the response
   return res.status(200).json({
     success: true,
-    message: "Got the products successfully",
-    products,
-    filteredProductsCount,
-    productsCount
+    message: "created or updated the review successfully",
+  });
+});
+
+// Get all reviews of a product
+exports.getProductReviews = AsyncHandler(async (req, rex, next) => {
+  // get the productId to find all the reviews of the product
+  const productId = req.query.id;
+
+  // find the product using the product id
+  const product = await Product.findById(productId);
+  if (!product) {
+    return next(new ErrorHandler("Product is not found", 400));
+  }
+
+  // return the response
+  return res.status(200).json({
+    success: true,
+    message: "Got all the reviews for the product successfully",
+    reviews: product.reviews,
   });
 });
