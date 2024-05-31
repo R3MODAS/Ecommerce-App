@@ -212,14 +212,19 @@ exports.deleteProductReview = AsyncHandler(async (req, res, next) => {
     (rev) => rev._id.toString() !== reviewId.toString()
   );
 
-  console.log(reviews)
-
   // store the ratings using the filtered reviews
   let totalRatings = 0;
   reviews.forEach((rev) => {
     totalRatings += rev.rating;
   });
-  const ratings = totalRatings / reviews.length;
+
+  // check if there are filtered reviews present or not
+  let ratings = 0;
+  if (reviews.length === 0) {
+    ratings = 0;
+  } else {
+    ratings = totalRatings / reviews.length;
+  }
 
   // store the no of reviews using the filtered reviews
   const numOfReviews = reviews.length;
