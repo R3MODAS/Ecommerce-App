@@ -51,3 +51,38 @@ exports.newOrder = AsyncHandler(async (req, res, next) => {
     order,
   });
 });
+
+// Get single order
+exports.getSingleOrder = AsyncHandler(async (req, res, next) => {
+  // get order id using request params
+  const orderId = req.params.id;
+
+  // check if the order exists in the db or not
+  const order = await Order.findById(orderId).populate("user", "name email");
+  if (!order) {
+    return new ErrorHandler("Order is not found", 400);
+  }
+
+  // return the response
+  return res.status(200).json({
+    success: true,
+    message: "Got the order details successfully",
+    order,
+  });
+});
+
+// Get logged in user orders
+exports.myOrders = AsyncHandler(async (req, res, next) => {
+  // get user id using req.user (passed from auth middleware)
+  const userId = req.user.id;
+
+  // check if the order exists in the db or not
+  const orders = await Order.find({ user: userId });
+
+  // return the response
+  return res.status(200).json({
+    success: true,
+    message: "Got the order details successfully",
+    orders,
+  });
+});
