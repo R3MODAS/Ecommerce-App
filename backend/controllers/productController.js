@@ -1,7 +1,7 @@
 const Product = require("../models/productModel");
 const { ApiFeatures } = require("../utils/apiFeatures");
-const AsyncHandler = require("../utils/asyncHandler");
-const ErrorHandler = require("../utils/errorHandler");
+const { AsyncHandler } = require("../utils/asyncHandler");
+const { ErrorHandler } = require("../utils/errorHandler");
 
 // Create Product (Admin)
 exports.createProduct = AsyncHandler(async (req, res, next) => {

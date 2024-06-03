@@ -1,20 +1,7 @@
 const { Router } = require("express");
 const router = Router();
 
-const {
-  registerUser,
-  loginUser,
-  logoutUser,
-  resetPasswordToken,
-  resetPassword,
-  changePassword,
-  getUserDetails,
-  updateUserProfile,
-  getAllUsers,
-  getSingleUser,
-  deleteUser,
-  updateUserRole,
-} = require("../controllers/userController");
+const { registerUser, loginUser, logoutUser, resetPasswordToken, resetPassword, changePassword, getUserDetails, updateUserProfile, getAllUsers, getSingleUser, deleteUser, updateUserRole } = require("../controllers/userController");
 const { auth, authorizeRoles } = require("../middlewares/auth");
 
 router.route("/register").post(registerUser);
