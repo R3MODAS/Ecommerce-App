@@ -15,8 +15,6 @@ exports.newOrder = AsyncHandler(async (req, res, next) => {
     shippingPrice,
     totalPrice,
   } = req.body;
-  // get the user id from req.user (passed from auth middleware)
-  const userId = req.user.id;
 
   // validation of data
   if (
@@ -31,7 +29,10 @@ exports.newOrder = AsyncHandler(async (req, res, next) => {
     return next(new ErrorHandler("All fields are required", 400));
   }
 
-  // create a new order entry in db
+  // get the user id from req user (passed from auth middleware)
+  const userId = req.user.id;
+
+  // create the order entry in db
   const order = await Order.create({
     shippingInfo,
     orderItems,
@@ -54,11 +55,13 @@ exports.newOrder = AsyncHandler(async (req, res, next) => {
 
 // Get single order
 exports.getSingleOrder = AsyncHandler(async (req, res, next) => {
-  // get order id using request params
+  // get the order id from request params
   const orderId = req.params.id;
 
   // check if the order exists in the db or not
-  const order = await Order.findById(orderId).populate("user", "name email");
+  const order = await Order.findById(orderId)
+    .populate("user", "name email")
+    .exec();
   if (!order) {
     return next(new ErrorHandler("Order is not found", 400));
   }
@@ -71,120 +74,83 @@ exports.getSingleOrder = AsyncHandler(async (req, res, next) => {
   });
 });
 
-// Get logged in user orders
+// Get all the orders made by the logged in user
 exports.myOrders = AsyncHandler(async (req, res, next) => {
-  // get user id using req.user (passed from auth middleware)
+  // get the user id from req user (passed from auth middleware)
   const userId = req.user.id;
 
-  // check if the order exists in the db or not
-  const orders = await Order.find({ user: userId });
-
-  // return the response
-  return res.status(200).json({
-    success: true,
-    message: "Got the order details successfully",
-    orders,
-  });
-});
-
-// Get all orders (Admin)
-exports.getAllOrders = AsyncHandler(async (req, res, next) => {
-  // get all the orders
-  const orders = await Order.find();
-
-  // get the total amount
-  let totalAmount = 0;
-  orders.forEach((order) => {
-    totalAmount += order.totalPrice;
-  });
+  // find the orders for the user
+  const orders = await Order.find({ user: userId })
+    .populate("user", "name email")
+    .exec();
 
   // return the response
   return res.status(200).json({
     success: true,
     message: "Got all the orders successfully",
     orders,
-    totalAmount,
   });
 });
 
+// Get all orders (Admin)
+exports.getAllOrders = AsyncHandler(async (req,res,nex) => {
+  // find all the orders made by the users
+    const orders = await Order.find().populate("user", "name email").exec()
+
+    // get the total amount
+    let totalAmount = 0
+    orders.forEach(order => {
+      totalAmount += order.totalPrice
+    })
+
+    // return the response
+    return res.status(200).json({
+      success: true,
+      message: "Got all the orders successfully",
+      orders,
+      totalAmount
+    })
+
+})
+
 // Update order (Admin)
-exports.updateOrder = AsyncHandler(async (req, res, next) => {
-  // get the order id
-  const orderId = req.params.id;
+exports.updateOrder = AsyncHandler(async (req,res,next) => {
+  // get data (order status) from request body
+  const {status} = req.body
 
-  // get the order status from request body
-  const { status } = req.body;
-
-  // validation of data
-  if (!status) {
-    return next(new ErrorHandler("Status is required", 400));
-  }
+  // get the orderId from request params
+  const orderId = req.params.id
 
   // check if the order exists in the db or not
-  const order = await Order.findById(orderId);
-  if (!order) {
-    return next(new ErrorHandler("Order is not found", 400));
+  const order = await Order.findById(orderId)
+  if(!order){
+    return next(new ErrorHandler("Order is not found", 400))
   }
 
   // check if the order is already delivered or not
-  if (order.orderStatus === "Delivered") {
-    return next(new ErrorHandler("You have already delivered this order", 400));
+  if(order.orderStatus === "Delivered"){
+    return next(new ErrorHandler("Order has been already delivered", 400))
   }
 
-  // if the order status is set to shipped then update the product stock
-  if (status === "Shipped") {
-    order.orderItems.forEach(async (o) => {
-      // update the stock of the product
-      await updateStock(o.product, o.quantity);
-    });
-  }
-
-  // update the order status in db
-  order.orderStatus = status;
-
-  // set the delivered time once the order is delivered
-  if (status === "Delivered") {
-    order.deliveredAt = Date.now();
-  }
-
-  // save the changes
-  await order.save({ validateBeforeSave: false });
-
-  // return the response
-  return res.status(200).json({
-    success: true,
-    message: "Updated the order status successfully",
-  });
-});
-
-async function updateStock(id, quantity) {
-  // find the product the user ordered
-  const product = await Product.findById(id);
-
-  console.log(product.stock);
-  // decrease the stock quantity
-  product.stock -= quantity;
-  // save the changes
-  await product.save({ validateBeforeSave: false });
-}
+})
 
 // Delete order (Admin)
-exports.deleteOrder = AsyncHandler(async (req, res, next) => {
-  // get the order id using request params
-  const orderId = req.params.id;
+exports.deleteOrder = AsyncHandler(async (req,res,next) => {
+    // get the order id from request params
+    const orderId = req.params.id
 
-  // check if the order exists in the db or not
-  const order = await Order.findById(orderId);
-  if (!order) {
-    return next(new ErrorHandler("Order is not found", 400));
-  }
+    // check if the order exists in the db or not
+    const order = await Order.findById(orderId)
+    if(!order){
+      return next(new ErrorHandler("Order is not found", 400))
+    }
 
-  // remove the order
-  await order.deleteOne();
+    // delete the order from db
+    await order.deleteOne()
 
-  // return the response
-  return res.status(200).json({
-    success: true,
-    message: "Deleted the order successfully",
-  });
-});
+    // return the response
+    return res.status(200).json({
+      success: true,
+      message: "Order is removed successfully"
+    })
+})

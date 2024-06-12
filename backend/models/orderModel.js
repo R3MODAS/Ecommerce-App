@@ -73,6 +73,7 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
     itemsPrice: {
+      // item price * quantity
       type: Number,
       default: 0,
       required: true,
