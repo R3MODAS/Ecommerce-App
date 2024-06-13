@@ -1,15 +1,12 @@
 {
-  "name": "ecommerce-app",
+  "name": "backend",
   "version": "1.0.0",
-  "main": "backend/index.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node backend/index.js",
-    "dev": "nodemon backend/index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
-  "keywords": [
-    "full",
-    "stack"
-  ],
+  "keywords": [],
   "author": "Sharadindu Das",
   "license": "ISC",
   "description": "",
@@ -17,18 +14,16 @@
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.2.0",
     "cookie-parser": "^1.4.6",
-    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-fileupload": "^1.5.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.4.0",
+    "mongoose": "^8.4.1",
     "nodemailer": "^6.9.13",
-    "stripe": "^15.7.0",
-    "validator": "^13.12.0"
+    "stripe": "^15.10.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.2"
+    "nodemon": "^3.1.3"
   }
 }
