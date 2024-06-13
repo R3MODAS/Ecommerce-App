@@ -1,11 +1,12 @@
-import React from "react";
 import { ReactNavbar } from "overlay-navbar";
 import { BiSolidUserRectangle } from "react-icons/bi";
 import { FiShoppingBag } from "react-icons/fi";
 import { FaSearch } from "react-icons/fa";
+import logo from "../../../images/logo.png"
 
 const options = {
   burgerColorHover: "#eb4034",
+  logo,
   logoWidth: "20vmax",
   navColor1: "white",
   logoHoverSize: "10px",
@@ -34,12 +35,12 @@ const options = {
   searchIconColorHover: "#eb4034",
   cartIconColorHover: "#eb4034",
   cartIconMargin: "1vmax",
-  profileIcon: true,
   ProfileIconElement: BiSolidUserRectangle,
-  cartIcon: true,
+  profileIcon: true,
   CartIconElement: FiShoppingBag,
+  cartIcon: true,
+  SearchIconElement: FaSearch,
   searchIcon: true,
-  SearchIconElement: FaSearch
 };
 
 const Header = () => {
