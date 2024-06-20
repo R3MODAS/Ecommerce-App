@@ -27,10 +27,16 @@ const ErrorMiddleware = (err, req, res, next) => {
     err = new ErrorHandler(message, 400);
   }
 
+  // Joi validation error
+  if (err.name === "ValidationError") {
+    const message = err.details[0].message.replace(/['"]+/g, '')
+    err = new ErrorHandler(message, 400);
+  }
+
   // return the response
   return res.status(err.statusCode).json({
     success: false,
-    message: err.message,
+    message: err.message
   });
 };
 

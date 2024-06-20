@@ -1,14 +1,19 @@
 const User = require("../models/userModel");
 const { AsyncHandler } = require("../utils/asyncHandler");
 const { ErrorHandler } = require("../utils/errorHandler");
-const crypto = require("crypto");
-const { signUpSchema, signInSchema } = require("../utils/validateSchema");
+const { signUpSchema } = require("../schemas/signUpSchema");
+const { signInSchema } = require("../schemas/signInSchema")
 const sendToken = require("../utils/sendToken");
+const crypto = require("crypto");
+const { resetPasswordTokenSchema } = require("../schemas/resetPasswordTokenSchema");
 
 // Register a user
 exports.registerUser = AsyncHandler(async (req, res, next) => {
+  // get data from request body
+  const { name, email, password } = req.body
+
   // validation of data
-  const { name, email, password } = await signUpSchema.validateAsync(req.body);
+  await signUpSchema.validateAsync({ name, email, password })
 
   // check if the user is already registered in the db or not
   const isExistingUser = await User.findOne({ email });
@@ -36,8 +41,11 @@ exports.registerUser = AsyncHandler(async (req, res, next) => {
 
 // Login a user
 exports.loginUser = AsyncHandler(async (req, res, next) => {
+  // get data from request body
+  const { name, email, password } = req.body
+
   // validation of data
-  const { email, password } = await signInSchema.validateAsync(req.body);
+  await signInSchema.validateAsync({ email, password })
 
   // check if the user exists in the db or not
   const user = await User.findOne({ email }).select("+password");
@@ -74,5 +82,11 @@ exports.logoutUser = AsyncHandler(async (req, res, next) => {
 
 // Reset password token
 exports.resetPasswordToken = AsyncHandler(async (req, res, next) => {
-    
+  // get data from request body
+  const { email } = req.body
+
+  // validation of data
+  await resetPasswordTokenSchema.validateAsync({ email })
+
+  // check if the user exists in the db or not
 });
