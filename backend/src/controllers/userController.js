@@ -6,6 +6,7 @@ const { signInSchema } = require("../schemas/signInSchema")
 const sendToken = require("../utils/sendToken");
 const crypto = require("crypto");
 const { resetPasswordTokenSchema } = require("../schemas/resetPasswordTokenSchema");
+const mailer = require("../utils/mailer");
 
 // Register a user
 exports.registerUser = AsyncHandler(async (req, res, next) => {
@@ -89,4 +90,41 @@ exports.resetPasswordToken = AsyncHandler(async (req, res, next) => {
   await resetPasswordTokenSchema.validateAsync({ email })
 
   // check if the user exists in the db or not
+  const user = await User.findOne({ email })
+  if (!user) {
+    return next(new ErrorHandler("User is not found", 400))
+  }
+
+  // get the reset password token
+  const token = user.generateResetPasswordToken()
+
+  // save all the changes of token and token expiry
+  await user.save({ validateBeforeSave: false })
+
+  // create the url to send to the user
+  const url = `${req.protocol}://${req.get("host")}/reset-password/${token}`
+
+  try {
+    // send the mail to the user
+    await mailer(email, `Reset Password Link | Ecommerce`, `You can reset your password by clicking <a href=${url} target="_blank">Reset your password</a>\nIf the above link does not work for some reason then copy paste this link in new tab ${url}.\n If you have not requested this, kindly ignore.`);
+
+    // return the response
+    return res.status(200).json({
+      success: true,
+      message: `Reset password link is sent to ${email} successfully`
+    })
+  } catch (err) {
+    // remove the token and token expiry
+    user.forgotPasswordToken = undefined
+    user.forgotPasswordTokenExpiry = undefined
+    await user.save()
+
+    // return the response
+    return next(new ErrorHandler(err.message, 500))
+  }
 });
+
+// Reset password
+exports.resetPassword = AsyncHandler(async (req,res,next) => {
+  
+})
