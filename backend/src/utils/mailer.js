@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer"
+import nodemailer from "nodemailer";
 
 export const mailer = async (email, title, body) => {
     try {
@@ -14,13 +14,12 @@ export const mailer = async (email, title, body) => {
 
         // send the mail and get the response
         const info = await transporter.sendMail({
-            from: 'Sharadindu Das 👻',
+            from: "Sharadindu Das 👻",
             to: email,
             subject: title,
             html: body,
         });
-
     } catch (err) {
-        console.log(err.message)
+        console.log(err.message);
     }
-}
+};

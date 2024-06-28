@@ -1,8 +1,8 @@
 import { ErrorHandler } from "../utils/errorHandler.js";
 
 export const ErrorMiddleware = (err, req, res, next) => {
-    err.message = err.message || "Internal Server Error"
-    err.statusCode = err.statusCode || 500
+    err.message = err.message || "Internal Server Error";
+    err.statusCode = err.statusCode || 500;
 
     // Mongodb id error
     if (err.name === "CastError") {
@@ -29,13 +29,13 @@ export const ErrorMiddleware = (err, req, res, next) => {
 
     // Joi validation error
     if (err.name === "ValidationError") {
-        const message = err.details[0].message.replace(/['"]+/g, '')
+        const message = err.details[0].message.replace(/['"]+/g, "");
         err = new ErrorHandler(message, 400);
     }
 
     // return the response
     return res.status(err.statusCode).json({
         success: false,
-        message: err.message
+        message: err.message,
     });
-}
+};
