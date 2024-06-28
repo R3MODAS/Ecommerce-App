@@ -1,9 +1,7 @@
-const joi = require("joi");
+import joi from "joi"
 
-const changePasswordSchema = joi.object({
-   oldPassword: joi.string().trim().min(8).required(),
-   newPassword: joi.string().trim().min(8).required(),
-   confirmNewPassword: joi.string().trim().min(8).required(),
-});
-
-module.exports = { changePasswordSchema };
+export const changePasswordSchema = joi.object({
+    oldPassword: joi.string().required().lowercase().trim(),
+    newPassword: joi.string().required().lowercase().trim(),
+    confirmNewPassword: joi.string().required().lowercase().trim()
+})

@@ -1,9 +1,7 @@
-const joi = require("joi")
+import joi from "joi"
 
-const signUpSchema = joi.object({
-    name: joi.string().trim().min(6).max(30).required(),
-    email: joi.string().trim().email().lowercase().pattern(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/).required(),
-    password: joi.string().trim().min(8).required(),
-});
-
-module.exports = { signUpSchema }
+export const signUpSchema = joi.object({
+    name: joi.string().required().min(3).max(30).trim(),
+    email: joi.string().email().required().lowercase().trim().pattern(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/),
+    password: joi.string().required().min(8).trim()
+})

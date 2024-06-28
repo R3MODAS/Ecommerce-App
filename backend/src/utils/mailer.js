@@ -1,6 +1,6 @@
-const nodemailer = require("nodemailer");
+import nodemailer from "nodemailer"
 
-const mailer = async (email, title, body) => {
+export const mailer = async (email, title, body) => {
     try {
         // create a transporter
         const transporter = nodemailer.createTransport({
@@ -12,16 +12,15 @@ const mailer = async (email, title, body) => {
             },
         });
 
-        // send the mail
-        await transporter.sendMail({
-            from: "Sharadindu Das | Ecommerce",
-            to: `${email}`,
-            subject: `${title}`,
-            html: `${body}`,
+        // send the mail and get the response
+        const info = await transporter.sendMail({
+            from: 'Sharadindu Das 👻',
+            to: email,
+            subject: title,
+            html: body,
         });
-    } catch (err) {
-        console.log(err.message);
-    }
-};
 
-module.exports = mailer;
+    } catch (err) {
+        console.log(err.message)
+    }
+}
