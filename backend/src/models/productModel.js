@@ -1,45 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 
-// Image schema
-const imageSchema = new Schema({
-    public_id: {
-        type: String,
-        required: true,
-    },
-    url: {
-        type: String,
-        required: true,
-    },
-});
-
-// Review schema
-const reviewSchema = new Schema({
-    user: {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-    },
-    name: {
-        type: String,
-        required: true,
-    },
-    rating: {
-        type: Number,
-        required: true,
-        min: [0, "Rating must be atleast 0"],
-        max: [5, "Rating must not exceed 5"],
-    },
-    comment: {
-        type: String,
-        required: true,
-        trim: true,
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-});
-
 // Product schema
 const productSchema = new Schema(
     {
@@ -65,7 +25,18 @@ const productSchema = new Schema(
             required: [true, "Please enter the product category"],
             trim: true,
         },
-        images: [imageSchema],
+        images: [
+            {
+                public_id: {
+                    type: String,
+                    required: true,
+                },
+                url: {
+                    type: String,
+                    required: true,
+                },
+            },
+        ],
         stock: {
             type: Number,
             required: [true, "Please enter the product stock"],
@@ -85,7 +56,28 @@ const productSchema = new Schema(
             type: Number,
             default: 0,
         },
-        reviews: [reviewSchema],
+        reviews: [
+            {
+                user: {
+                    type: Schema.Types.ObjectId,
+                    ref: "User",
+                    required: true,
+                },
+                name: {
+                    type: String,
+                    required: true,
+                },
+                rating: {
+                    type: Number,
+                    required: true,
+                },
+                comment: {
+                    type: String,
+                    required: true,
+                    trim: true,
+                },
+            },
+        ],
     },
     { timestamps: true }
 );

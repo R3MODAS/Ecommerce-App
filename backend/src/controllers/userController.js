@@ -10,6 +10,8 @@ import { mailer } from "../utils/mailer.js";
 import { sendToken } from "../utils/sendToken.js";
 import crypto from "crypto";
 
+// ====================== Authentication Routes ====================== //
+
 // Register a user
 export const registerUser = AsyncHandler(async (req, res, next) => {
     // get data from request body
