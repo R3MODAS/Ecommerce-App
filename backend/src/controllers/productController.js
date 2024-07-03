@@ -2,53 +2,46 @@ import ProductModel from "../models/productModel.js";
 import { AsyncHandler } from "../utils/asyncHandler.js";
 import { ErrorHandler } from "../utils/errorHandler.js";
 import { ProductFeatures } from "../utils/productFeatures.js";
-import { createProductReviewSchema } from "../schemas/productSchemas/createProductReviewSchema.js";
+import { createProductReviewSchema } from "../schemas/productSchema.js";
 
 // ====================== Admin Routes ====================== //
 
 // Create a product (Admin)
 export const createProduct = AsyncHandler(async (req, res, next) => {
-    // insert the user id (admin) (passed from auth middleware) who created this product in the request body
+    // insert the user id who is creating the product (Admin) inside the request body
     req.body.user = req.user.id;
 
-    // store the request body data
+    // store all the data for product
     const productData = req.body;
 
-    // create an entry for product in db
+    // create the product
     const product = await ProductModel.create(productData);
 
     // return the response
-    return res.status(200).json({
+    return res.status(201).json({
         success: true,
-        message: "Created the product successfully",
+        messsage: "Created the product successfully",
         product,
     });
 });
 
 // Update a product (Admin)
 export const updateProduct = AsyncHandler(async (req, res, next) => {
-    // get data from request body
-    const productData = req.body;
-
     // get the product id from request params
     const productId = req.params.id;
 
     // check if the product exists in the db or not
-    const isExistingProduct = await ProductModel.findById(productId);
-    if (!isExistingProduct) {
+    let product = await ProductModel.findById(productId);
+    if (!product) {
         return next(new ErrorHandler("Product is not found", 400));
     }
 
     // update the product details
-    const product = await ProductModel.findByIdAndUpdate(
-        productId,
-        productData,
-        {
-            new: true,
-            runValidators: true,
-            useFindAndModify: false,
-        }
-    );
+    product = await ProductModel.findByIdAndUpdate(productId, req.body, {
+        new: true,
+        runValidators: true,
+        useFindAndModify: false,
+    });
 
     // return the response
     return res.status(200).json({
@@ -76,6 +69,19 @@ export const deleteProduct = AsyncHandler(async (req, res, next) => {
     return res.status(200).json({
         success: true,
         message: "Deleted the product successfully",
+    });
+});
+
+// Get all products (Admin)
+export const getAdminProducts = AsyncHandler(async (req, res, next) => {
+    // get all the products
+    const products = await ProductModel.find();
+
+    // return the response
+    return res.status(200).json({
+        success: true,
+        message: "Got all the products successfully",
+        products,
     });
 });
 

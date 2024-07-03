@@ -6,7 +6,9 @@ import {
     createProductReview,
     deleteProduct,
     deleteProductReview,
+    getAdminProducts,
     getAllProducts,
+    getProductDetails,
     getProductReviews,
     updateProduct,
 } from "../controllers/productController.js";
@@ -20,8 +22,13 @@ router
     .route("/admin/product/:id")
     .put(auth, authorizeRoles("admin"), updateProduct)
     .delete(auth, authorizeRoles("admin"), deleteProduct);
+router
+    .route("/admin/products")
+    .get(auth, authorizeRoles("admin"), getAdminProducts);
 
+// Product routes
 router.route("/products").get(getAllProducts);
+router.route("/product/:id").get(getProductDetails);
 router.route("/review").put(auth, createProductReview);
 router
     .route("/reviews")

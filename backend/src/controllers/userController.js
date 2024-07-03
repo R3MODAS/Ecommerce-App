@@ -1,16 +1,18 @@
 import UserModel from "../models/userModel.js";
-import { changePasswordSchema } from "../schemas/authSchemas/changePasswordSchema.js";
-import { resetPasswordSchema } from "../schemas/authSchemas/resetPasswordSchema.js";
-import { resetPasswordTokenSchema } from "../schemas/authSchemas/resetPasswordTokenSchema.js";
-import { signInSchema } from "../schemas/authSchemas/signInSchema.js";
-import { signUpSchema } from "../schemas/authSchemas/signUpSchema.js";
+import {
+    signUpSchema,
+    signInSchema,
+    resetPasswordTokenSchema,
+    resetPasswordSchema,
+    changePasswordSchema,
+} from "../schemas/authSchema.js";
 import { AsyncHandler } from "../utils/asyncHandler.js";
 import { ErrorHandler } from "../utils/errorHandler.js";
 import { mailer } from "../utils/mailer.js";
 import { sendToken } from "../utils/sendToken.js";
 import crypto from "crypto";
 
-// ====================== Authentication Routes ====================== //
+// =================== Authentication Routes ===================
 
 // Register a user
 export const registerUser = AsyncHandler(async (req, res, next) => {
@@ -21,8 +23,8 @@ export const registerUser = AsyncHandler(async (req, res, next) => {
     await signUpSchema.validateAsync({ name, email, password });
 
     // check if the user already exists in the db or not
-    const existingUser = await UserModel.findOne({ email });
-    if (existingUser) {
+    const isExistingUser = await UserModel.findOne({ email });
+    if (isExistingUser) {
         return next(new ErrorHandler("User is already registered", 400));
     }
 
@@ -41,7 +43,7 @@ export const registerUser = AsyncHandler(async (req, res, next) => {
     user.password = undefined;
 
     // token, cookie and response functionality
-    sendToken(user, res, 200, "User is registered successfully");
+    sendToken(user, res, 201, "User is registered successfully");
 });
 
 // Login a user
@@ -73,7 +75,7 @@ export const loginUser = AsyncHandler(async (req, res, next) => {
 
 // Logout a user
 export const logoutUser = AsyncHandler(async (req, res, next) => {
-    // remove the cookie and return the response
+    // remove the cookie and send the response
     return res
         .cookie("token", null, {
             expires: new Date(Date.now()),
@@ -92,7 +94,7 @@ export const resetPasswordToken = AsyncHandler(async (req, res, next) => {
     const { email } = req.body;
 
     // validation of data
-    await resetPasswordTokenSchema.validateAsync({ email });
+    await resetPasswordSchema.validateAsync({ email });
 
     // check if the user exists in the db or not
     const user = await UserModel.findOne({ email });
@@ -103,14 +105,14 @@ export const resetPasswordToken = AsyncHandler(async (req, res, next) => {
     // get the reset password token
     const token = user.generateResetPasswordToken();
 
-    // save the changes for adding token and token expiry on db
+    // save the token and token expiry to db
     await user.save({ validateBeforeSave: false });
 
-    // create an url for user to reset the password
+    // create an url
     const url = `${req.protocol}://${req.get("host")}/reset-password/${token}`;
 
     try {
-        // send an email to reset the password
+        // send an email to the user
         await mailer(
             email,
             `Reset Password Link | Ecommerce`,
@@ -120,13 +122,13 @@ export const resetPasswordToken = AsyncHandler(async (req, res, next) => {
         // return the response
         return res.status(200).json({
             success: true,
-            message: `Reset password link for ${email} has been sent successfully ✨`,
+            message: `Reset password link for ${email} has been sent successfully`,
         });
     } catch (err) {
-        // if the email is not sent successfully
+        // remove the token and token expiry and save the changes
         user.forgotPasswordToken = undefined;
         user.forgotPasswordTokenExpiry = undefined;
-        await user.save();
+        await user.save({ validateBeforeSave: false });
 
         // return the response
         return next(new ErrorHandler(err.message, 500));
@@ -138,26 +140,18 @@ export const resetPassword = AsyncHandler(async (req, res, next) => {
     // get data from request body
     const { password, confirmPassword } = req.body;
 
-    // get the reset password token from request params
-    const resetPasswordToken = req.params.token;
-
     // validation of data
     await resetPasswordSchema.validateAsync({ password, confirmPassword });
 
     // check if the password and confirm password matches or not
     if (password !== confirmPassword) {
-        return next(
-            new ErrorHandler(
-                "Password and Confirm password does not match",
-                400
-            )
-        );
+        return next(new ErrorHandler("Password does not match", 400));
     }
 
-    // hash the reset password token
+    // hash the reset password token to check it with db
     const token = crypto
         .createHash("sha256")
-        .update(resetPasswordToken)
+        .update(req.params.token)
         .digest("hex");
 
     // validation of token
@@ -167,38 +161,26 @@ export const resetPassword = AsyncHandler(async (req, res, next) => {
     });
     if (!user) {
         return next(
-            new ErrorHandler("Invalid token or token has expired", 401)
+            new ErrorHandler("Invalid token or token has expired", 400)
         );
     }
 
-    // update the password and remove the token data
+    // update the new password and remove the token and token expiry
     user.password = password;
     user.forgotPasswordToken = undefined;
     user.forgotPasswordTokenExpiry = undefined;
     await user.save();
 
-    try {
-        // send a mail to the user
-        await mailer(
-            user.email,
-            `Reset Password Successful | Ecommerce`,
-            `Password for ${user.email} is updated successfully`
-        );
+    // remove the password (before sending it as response)
+    user.password = undefined;
 
-        // remove the password (before sending it as response)
-        user.password = undefined;
-
-        // token, cookie and response functionality
-        sendToken(
-            user,
-            res,
-            200,
-            `Password for ${user.email} is updated successfully`
-        );
-    } catch (err) {
-        // return the response
-        return next(new ErrorHandler(err.message, 500));
-    }
+    // token, cookie and response functionality
+    sendToken(
+        user,
+        res,
+        200,
+        `Reset password for ${user.email} is done successfully`
+    );
 });
 
 // Change password
@@ -222,13 +204,13 @@ export const changePassword = AsyncHandler(async (req, res, next) => {
         return next(new ErrorHandler("User is not found", 400));
     }
 
-    // check if the old password and db password matches or not
+    // check if old password and user password matches or not
     const isValidPassword = await user.comparePassword(oldPassword);
     if (!isValidPassword) {
-        return next(new ErrorHandler("Incorrect password", 401));
+        return next(new ErrorHandler("Incorrect password", 400));
     }
 
-    // check if the new password and confirm new password matches or not
+    // check if new password and confirm new password matches or not
     if (newPassword !== confirmNewPassword) {
         return next(
             new ErrorHandler(
@@ -238,7 +220,7 @@ export const changePassword = AsyncHandler(async (req, res, next) => {
         );
     }
 
-    // update the user password
+    // update the new password
     user.password = newPassword;
     await user.save();
 
@@ -253,6 +235,8 @@ export const changePassword = AsyncHandler(async (req, res, next) => {
         `Password for ${user.email} is updated successfully`
     );
 });
+
+// =================== User Routes ===================
 
 // Get user details
 export const getUserDetails = AsyncHandler(async (req, res, next) => {
@@ -278,7 +262,7 @@ export const updateUserProfile = AsyncHandler(async (req, res, next) => {
     // get data from request body
     const { name, email } = req.body;
 
-    // get the user Id from request user (passed from auth middleware)
+    // get the user id from request user (passed from auth middleware)
     const userId = req.user.id;
 
     // check if the user exists in the db or not
@@ -287,7 +271,7 @@ export const updateUserProfile = AsyncHandler(async (req, res, next) => {
         return next(new ErrorHandler("User is not found", 400));
     }
 
-    // update the user details
+    // update the user info
     await UserModel.findByIdAndUpdate(
         userId,
         {
@@ -304,15 +288,15 @@ export const updateUserProfile = AsyncHandler(async (req, res, next) => {
     // return the response
     return res.status(200).json({
         success: true,
-        message: "Updated the user profile successfully",
+        message: "Updated the user details successfully",
     });
 });
 
-// ====================== Admin Routes ====================== //
+// =================== Admin Routes ===================
 
-// Get all users (Admin)
+// Get all users
 export const getAllUsers = AsyncHandler(async (req, res, next) => {
-    // find all the users
+    // find all the users present in db
     const users = await UserModel.find();
 
     // return the response
@@ -323,7 +307,7 @@ export const getAllUsers = AsyncHandler(async (req, res, next) => {
     });
 });
 
-// Get single user (Admin)
+// Get a user
 export const getAUser = AsyncHandler(async (req, res, next) => {
     // get the user id from request params
     const userId = req.params.id;
@@ -337,12 +321,12 @@ export const getAUser = AsyncHandler(async (req, res, next) => {
     // return the response
     return res.status(200).json({
         success: true,
-        message: "Got the user info successfully",
+        message: "Got the user successfully",
         user,
     });
 });
 
-// Delete user (Admin)
+// Delete a user
 export const deleteAUser = AsyncHandler(async (req, res, next) => {
     // get the user id from request params
     const userId = req.params.id;
@@ -353,7 +337,7 @@ export const deleteAUser = AsyncHandler(async (req, res, next) => {
         return next(new ErrorHandler("User is not found", 400));
     }
 
-    // delete the user from db
+    // delete the user
     await user.deleteOne();
 
     // return the response
@@ -363,7 +347,7 @@ export const deleteAUser = AsyncHandler(async (req, res, next) => {
     });
 });
 
-// Update user role (Admin)
+// Update user role
 export const updateUserRole = AsyncHandler(async (req, res, next) => {
     // get data from request body
     const { name, email, role } = req.body;
@@ -377,7 +361,7 @@ export const updateUserRole = AsyncHandler(async (req, res, next) => {
         return next(new ErrorHandler("User is not found", 400));
     }
 
-    // update the user details
+    // update the user info
     await UserModel.findByIdAndUpdate(
         userId,
         {
@@ -385,7 +369,11 @@ export const updateUserRole = AsyncHandler(async (req, res, next) => {
             email,
             role,
         },
-        { new: true, runValidators: true, useFindAndModify: false }
+        {
+            new: true,
+            runValidators: true,
+            useFindAndModify: false,
+        }
     );
 
     // return the response
